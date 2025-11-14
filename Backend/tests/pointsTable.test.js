@@ -1,4 +1,4 @@
-// tests/pointsTable.test.js
+
 const {
   parseOversToBalls,
   ballsToDecimalOvers,

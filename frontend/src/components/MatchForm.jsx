@@ -1,20 +1,20 @@
 // Match simulation form component
 
-import React from 'react';
+import React,{useState} from 'react';
 import PropTypes from 'prop-types';
 import { calculateMatch } from '../services/api';
 
 export default function MatchForm({ onSimulate, setLoading }) {
   // Form state
-  const [yourTeam, setYourTeam] = React.useState('RR');
-  const [opposition, setOpposition] = React.useState('DC');
-  const [matchOvers, setMatchOvers] = React.useState('20');
-  const [desiredPosition, setDesiredPosition] = React.useState('1');
-  const [tossResult, setTossResult] = React.useState('batting');
-  const [runsScored, setRunsScored] = React.useState('160');
+  const [yourTeam, setYourTeam] = useState('RR');
+  const [opposition, setOpposition] = useState('DC');
+  const [matchOvers, setMatchOvers] = useState('20');
+  const [desiredPosition, setDesiredPosition] = useState('1');
+  const [tossResult, setTossResult] = useState('batting');
+  const [runsScored, setRunsScored] = useState('160');
 
-  const [message, setMessage] = React.useState(null);
-  const [error, setError] = React.useState(null);
+  const [message, setMessage] = useState(null);
+  const [error, setError] = useState(null);
 
   // Validate input fields
   const validateInputs = () => {

@@ -1,6 +1,3 @@
-// backend/src/services/positionCalculator.js
-// Simplified Position Calculator - FIXED VERSION
-// Properly converts balls to overs format without errors
 
 'use strict';
 
@@ -10,9 +7,9 @@ const nrrCalculator = require('./nrrCalculator');
 // Small number for comparing decimals
 const EPS = 0.000000001;
 
-/**
- * Sort table by points, NRR, and wins
- */
+
+ //Sort table by points,NRR,and wins
+ 
 function sortTable(table) {
   const sorted = table.slice(); // Make a copy
 
@@ -49,9 +46,7 @@ function sortTable(table) {
   return sorted;
 }
 
-/**
- * Find team in table
- */
+
 function findTeam(table, teamId) {
   for (let i = 0; i < table.length; i++) {
     if (table[i].id === teamId) {
@@ -61,9 +56,6 @@ function findTeam(table, teamId) {
   return -1;
 }
 
-/**
- * Copy table
- */
 function copyTable(table) {
   const newTable = [];
   for (let i = 0; i < table.length; i++) {
@@ -90,19 +82,14 @@ function copyTable(table) {
   return newTable;
 }
 
-/**
- * Convert balls to overs format (e.g., 115 balls -> "19.1")
- * This ensures the format is always valid for parseOversToBalls
- */
+
 function ballsToOversString(balls) {
   const oversNum = Math.floor(balls / 6);
   const ballsPart = balls % 6;
   return oversNum + '.' + ballsPart;
 }
 
-/**
- * Simulate match and return new table with updated position
- */
+
 function simulateMatchAndGetPosition(table, yourTeamId, oppTeamId, yourRuns, yourOvers, oppRuns, oppOvers) {
   const newTable = copyTable(table);
 
@@ -166,9 +153,6 @@ function simulateMatchAndGetPosition(table, yourTeamId, oppTeamId, yourRuns, you
   };
 }
 
-/**
- * Find range of runs to restrict opponent (batting first scenario)
- */
 function findBattingFirstRange(yourTeamId, oppTeamId, desiredPosition, yourRuns, matchOvers) {
   const table = pointsTableModel.getPointsTableSnapshot();
   
@@ -251,10 +235,7 @@ function findBattingFirstRange(yourTeamId, oppTeamId, desiredPosition, yourRuns,
   };
 }
 
-/**
- * Find range of overs to chase target (bowling first scenario)
- * FIXED: Properly converts balls to overs format
- */
+
 function findBowlingFirstRange(yourTeamId, oppTeamId, desiredPosition, targetRuns, matchOvers) {
   const table = pointsTableModel.getPointsTableSnapshot();
   
@@ -353,9 +334,9 @@ function findBowlingFirstRange(yourTeamId, oppTeamId, desiredPosition, targetRun
   };
 }
 
-/**
- * Main function to find required performance range
- */
+
+ // Main function to find required performance range
+ 
 function findRequiredPerformanceRange(yourTeamId, oppTeamId, desiredPosition, tossResult, runsScored, matchOvers) {
   if (tossResult === 'batting') {
     // Batting first - find range of runs to restrict opponent

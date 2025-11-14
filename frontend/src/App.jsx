@@ -1,14 +1,15 @@
 // Main App component
 
-import React from 'react';
+import React,{useState} from 'react';
 import PointsTable from './components/pointsTable';
 import MatchForm from './components/matchForm';
 import ResultDisplay from './components/ResultDisplay';
+import React from 'react';
 
 export default function App() {
-  const [table, setTable] = React.useState([]);
-  const [result, setResult] = React.useState(null);
-  const [loading, setLoading] = React.useState(false);
+  const [table, setTable] = useState([]);
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // Handle simulation results from MatchForm
   const handleSimulate = React.useCallback(({ fullTable, ...rest }) => {

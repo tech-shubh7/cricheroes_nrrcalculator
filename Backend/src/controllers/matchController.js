@@ -1,10 +1,9 @@
-// Backend match calculation controller
 
 'use strict';
 
 const pointsTableModel = require('../models/pointsTable');
 const positionCalculator = require('../services/positionCalculator');
-const nrrCalculator = require('../services/nrrCalculator');
+
 
 const EPS = 0.000000001;
 

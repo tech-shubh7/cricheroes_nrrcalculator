@@ -1,4 +1,4 @@
-// backend/src/services/nrrCalculator.js
+
 'use strict';
 
 const pointsTableModel = require('../models/pointsTable');
@@ -15,9 +15,7 @@ function _computeNRR_fallback(totalForRuns, totalForBalls, totalAgainstRuns, tot
   return runRateFor - runRateAgainst;
 }
 
-/**
- * Normalize/round NRR to 3 decimals (returns Number or null)
- */
+// Format NRR to 3 decimal places
 function _formatNRR(n) {
   if (n === null || n === undefined || Number.isNaN(n)) return null;
   return Number(Number(n).toFixed(3));
