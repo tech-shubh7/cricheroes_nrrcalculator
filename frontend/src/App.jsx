@@ -4,7 +4,7 @@ import React,{useState} from 'react';
 import PointsTable from './components/pointsTable';
 import MatchForm from './components/matchForm';
 import ResultDisplay from './components/ResultDisplay';
-import React from 'react';
+
 
 export default function App() {
   const [table, setTable] = useState([]);
