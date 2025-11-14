@@ -29,7 +29,7 @@
 
 ## Overview
 
-IT is a web application that helps cricket teams understand what performance they need to reach a desired position in the IPL standings. It calculates scenarios based on:
+It is a web application that helps cricket teams understand what performance they need to reach a desired position in the IPL standings. It calculates scenarios based on:
 
 - **Net Run Rate (NRR)**: `(Runs Scored / Overs Faced) - (Runs Conceded / Overs Bowled)`
 - **Current standings**: Points, wins, losses, NRR
@@ -99,8 +99,6 @@ npm --version       # Should be v9+
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/cricheroes.git
-cd cricheroes_assignment
-
 
 ```
 
