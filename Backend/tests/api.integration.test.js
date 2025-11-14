@@ -1,4 +1,4 @@
-// tests/api.integration.test.js
+
 const request = require('supertest');
 const express = require('express');
 const helmet = require('helmet');
@@ -6,7 +6,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const matchRoutes = require('../src/routes/matchRoutes');
 
-// Create a minimal express app for testing
+
 const createTestApp = () => {
   const app = express();
   

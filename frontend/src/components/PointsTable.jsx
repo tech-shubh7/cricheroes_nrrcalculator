@@ -1,14 +1,14 @@
 // Points table display component
 
-import React from 'react';
+import React,{useState} from 'react';
 import PropTypes from 'prop-types';
 import { fetchPointsTable } from '../services/api';
 
 export default function PointsTable({ table = [], setTable, loading = false }) {
-  const [localLoading, setLocalLoading] = React.useState(false);
-  const [error, setError] = React.useState(null);
+  const [localLoading, setLocalLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     let mounted = true;
 
     async function loadData() {

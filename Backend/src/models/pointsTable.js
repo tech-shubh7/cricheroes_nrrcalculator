@@ -137,7 +137,7 @@ function getPointsTableSnapshot() {
 }
 
 module.exports = {
-  pointsTable, // exported for convenience (do not mutate this directly)
+  pointsTable, 
   getPointsTableSnapshot,
   parseOversToBalls,
   ballsToDecimalOvers,
