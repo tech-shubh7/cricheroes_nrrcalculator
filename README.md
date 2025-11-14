@@ -145,31 +145,23 @@ Test Suites: 4 passed, 4 total
 Tests:       31 passed, 31 total
 ```
 
-```
-
 **Combined Total: 71 tests - 100% passing ✅**
 
 ---
 
 
-
 ## Environment Variables
-
+```
 ### Backend (.env)
-```
+
 PORT=4000
-
 ```
 
+```
 ### Frontend (.env)
-```
+
 VITE_API_URL=http://localhost:4000
 ```
-
----
-
-
-
 
 **Made with ❤️ by Shubham Patel**
 
