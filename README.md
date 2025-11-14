@@ -481,7 +481,7 @@ cd frontend && npm run build
 ### Backend (.env)
 ```
 PORT=4000
-NODE_ENV=development
+
 ```
 
 ### Frontend (.env)
@@ -541,35 +541,9 @@ npm run build
 
 ---
 
-## Production Deployment
 
-### Backend
-```bash
-cd Backend
-NODE_ENV=production npm run dev
-```
-
-### Frontend
-```bash
-cd frontend
-npm run build
-npm run preview  # Preview production build locally
-```
-
-Deploy the `dist/` folder to your hosting service.
 
 ---
-
-## Contributing
-
-We welcome contributions! Here's how:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Write tests for new functionality
-4. Commit changes (`git commit -m 'Add amazing feature'`)
-5. Push to branch (`git push origin feature/amazing-feature`)
-6. Open a Pull Request
 
 ### Code Standards
 - All tests must pass
@@ -579,61 +553,7 @@ We welcome contributions! Here's how:
 
 ---
 
-## Common Tasks
 
-### Add New Team
-Edit `Backend/src/models/pointsTable.js`:
-```javascript
-const pointsTable = [
-  {
-    id: 'NEW_TEAM',
-    name: 'New Team Name',
-    matches: 0,
-    won: 0,
-    lost: 0,
-    pts: 0,
-    for: { runs: 0, balls: 0 },
-    against: { runs: 0, balls: 0 },
-    nrr: 0.0
-  }
-  // ... existing teams
-];
-```
-
-### Add New API Endpoint
-1. Add route in `Backend/src/routes/matchRoutes.js`
-2. Add controller in `Backend/src/controllers/matchController.js`
-3. Write tests in `Backend/tests/api.integration.test.js`
-4. Test with curl or Postman
-
-### Update Frontend Component
-1. Edit component in `frontend/src/components/`
-2. Write/update tests in `frontend/src/components/__tests__/`
-3. Test in browser at http://localhost:5173
-
----
-
-## FAQ
-
-**Q: How do I change the teams in the table?**
-A: Edit `Backend/src/models/pointsTable.js` - modify the `pointsTable` array.
-
-**Q: Can I use this for other cricket leagues?**
-A: Yes! The algorithm works for any league. Just update the teams data.
-
-**Q: How accurate is the NRR calculation?**
-A: It's mathematically precise to decimal places. Real IPL uses the same formula.
-
-**Q: What if two teams have identical stats?**
-A: They're sorted by number of wins as a tiebreaker.
-
----
-
-## License
-
-This project is licensed under the MIT License - see LICENSE file for details.
-
----
 
 ## Quick Reference
 
@@ -663,28 +583,9 @@ cd frontend && npm run build
 curl http://localhost:4000/api/points-table
 ```
 
----
 
-## Support
 
-For issues, questions, or suggestions:
-1. Check existing GitHub issues
-2. Create a new issue with details
-3. Include test output and error messages
-4. Describe expected vs actual behavior
 
----
-
-## Version History
-
-- **v1.0.0** - Initial release with full test suite
-  - 40 backend tests (unit + integration)
-  - 31 frontend tests (component + service)
-  - Complete API documentation
-  - Production-ready code
-
----
-
-**Made with ❤️ by CricHeroes Team**
+**Made with ❤️ by Shubham Patel**
 
 Happy coding! 🚀
