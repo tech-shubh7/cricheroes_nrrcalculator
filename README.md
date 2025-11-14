@@ -1,4 +1,3 @@
-# cricheroes_nrrcalculator
 # cricheroes_assignment
 # CricHeroes 🏏
 
