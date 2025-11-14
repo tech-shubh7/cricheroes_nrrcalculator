@@ -66,8 +66,8 @@ export default function MatchForm({ onSimulate, setLoading }) {
       if (tossResult === 'batting') {
         // Team batted first
         payload = {
-          yourTeam: yourTeam.trim(),
-          opposition: opposition.trim(),
+          yourTeam: yourTeam.trim().toUpperCase(),
+          opposition: opposition.trim().toUpperCase(),
           mode: 'range',
           runsScored: runsNum, 
           matchOvers: matchOvers.trim(),
@@ -81,8 +81,8 @@ export default function MatchForm({ onSimulate, setLoading }) {
       } else {
         // Team bowling first (chasing)
         payload = {
-          yourTeam: yourTeam.trim(),
-          opposition: opposition.trim(),
+          yourTeam: yourTeam.trim().toUpperCase(),
+          opposition: opposition.trim().toUpperCase(),
           mode: 'range',
           runsScored: runsNum,   
           matchOvers: matchOvers.trim(),
