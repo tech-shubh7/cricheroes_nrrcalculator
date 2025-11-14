@@ -145,48 +145,11 @@ Test Suites: 4 passed, 4 total
 Tests:       31 passed, 31 total
 ```
 
-
 ```
 
 **Combined Total: 71 tests - 100% passing ✅**
 
 ---
-
-## API Endpoints
-
-### Base URL
-```
-http://localhost:4000/api
-```
-
-### Endpoints
-
-#### 1. Get Current Points Table
-```http
-GET /api/points-table
-```
-
-```
-
-#### 2. Calculate Match Outcome
-```http
-POST /api/calculate
-Content-Type: application/json
-```
-
-```
-
-```
-
-
-
----
-
-
----
-
-
-
 
 
 
