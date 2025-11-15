@@ -1,0 +1,233 @@
+'use strict';
+
+const pointsTableModel = require('../models/pointsTable');
+const calculator = require('../services/calculator');
+
+// Validation helper: single place for all field checks
+function validateField(value, fieldName, options = {}) {
+  const { required = true, isNumber = false, allowZero = false, min = null, max = null } = options;
+  
+  if (required && (value === undefined || value === null)) {
+    return `${fieldName} is required`;
+  }
+  
+  if (value !== undefined && value !== null) {
+    if (isNumber) {
+      const numValue = Number(value);
+      if (isNaN(numValue)) return `${fieldName} must be a valid number`;
+      if (min !== null && numValue < min) return `${fieldName} must be >= ${min}`;
+      if (max !== null && numValue > max) return `${fieldName} must be <= ${max}`;
+    }
+  }
+  
+  return null;
+}
+
+// Return the current points table sorted by ranking
+function getPointsTable(req, res) {
+  try {
+    const snapshot = pointsTableModel.getPointsTableSnapshot();
+    const sortedTable = calculator.sortTableByRanking(snapshot);
+
+    return res.json({
+      success: true,
+      data: sortedTable
+    });
+  } catch (err) {
+    console.error('Error fetching points table:', err.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+}
+
+// Generic output formatter that works for both batting and bowling scenarios
+function formatOutput(yourTeamName, oppTeamName, result, scenario) {
+  if (!result || !result.success) {
+    return {
+      message: 'Cannot achieve desired position with given parameters',
+      canAchieve: false
+    };
+  }
+
+  const output = {
+    message: '',
+    canAchieve: true,
+    minNRR: result.minNRR,
+    maxNRR: result.maxNRR
+  };
+
+  if (scenario === 'batting') {
+    output.minRuns = result.minRuns;
+    output.maxRuns = result.maxRuns;
+    output.yourRuns = result.yourRuns;
+    output.overs = result.overs;
+    
+    const nrrText = result.minNRR !== null && result.maxNRR !== null 
+      ? `Your NRR will be between ${result.minNRR} to ${result.maxNRR}.`
+      : 'NRR values could not be computed.';
+    
+    output.message = `If ${yourTeamName} scores ${result.yourRuns} runs in ${result.overs} overs, ${yourTeamName} needs to restrict ${oppTeamName} between ${result.minRuns} to ${result.maxRuns} runs. ${nrrText}`;
+  } else {
+    output.minOvers = result.minOvers;
+    output.maxOvers = result.maxOvers;
+    output.targetRuns = result.targetRuns;
+    output.chasingRuns = result.chasingRuns;
+    
+    const nrrText = result.minNRR !== null && result.maxNRR !== null 
+      ? `Your NRR will be between ${result.minNRR} to ${result.maxNRR}.`
+      : 'NRR values could not be computed.';
+    
+    output.message = `${yourTeamName} needs to chase ${result.targetRuns} runs between ${result.minOvers} and ${result.maxOvers} overs. ${nrrText}`;
+  }
+
+  return output;
+}
+
+// Main calculation endpoint
+function calculateMatch(req, res) {
+  try {
+    const body = req.body || {};
+    
+    // Validate basic fields
+    const bodyError = validateField(body, 'body', { required: true, isNumber: false });
+    if (!Object.keys(body).length) {
+      return res.status(400).json({
+        success: false,
+        message: 'Request body is required'
+      });
+    }
+
+    const teamError = validateField(body.yourTeam, 'yourTeam') || validateField(body.opposition, 'opposition');
+    if (teamError) {
+      return res.status(400).json({
+        success: false,
+        message: teamError
+      });
+    }
+
+    // Get team info
+    const table = pointsTableModel.getPointsTableSnapshot();
+    const yourTeamIdx = calculator.findTeamInTable(table, body.yourTeam);
+    const oppTeamIdx = calculator.findTeamInTable(table, body.opposition);
+
+    if (yourTeamIdx === -1 || oppTeamIdx === -1) {
+      return res.status(400).json({
+        success: false,
+        message: 'Team not found in points table'
+      });
+    }
+
+    const yourTeamName = table[yourTeamIdx].name;
+    const oppTeamName = table[oppTeamIdx].name;
+    const mode = (body.mode || 'exact').toString();
+
+    // RANGE MODE
+    if (mode === 'range') {
+      // Validate all range fields at once
+      const errors = [
+        validateField(body.desiredPosition, 'desiredPosition', { required: true, isNumber: true }),
+        validateField(body.tossResult, 'tossResult', { required: true }),
+        validateField(body.yourRuns, 'yourRuns', { required: true, isNumber: true }),
+        validateField(body.matchOvers, 'matchOvers', { required: true })
+      ].filter(e => e !== null);
+
+      if (errors.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: errors[0]
+        });
+      }
+
+      const result = body.tossResult === 'batting'
+        ? calculator.findOpponentRunsRange(body.yourTeam, body.opposition, Number(body.desiredPosition), Number(body.yourRuns), body.matchOvers)
+        : calculator.findChasingOversRange(body.yourTeam, body.opposition, Number(body.desiredPosition), Number(body.yourRuns), body.matchOvers);
+
+      const output = formatOutput(yourTeamName, oppTeamName, result, body.tossResult === 'batting' ? 'batting' : 'bowling');
+
+      return res.json({
+        success: true,
+        mode: 'range',
+        yourTeam: yourTeamName,
+        opposition: oppTeamName,
+        desiredPosition: Number(body.desiredPosition),
+        tossResult: body.tossResult,
+        result: output
+      });
+    }
+
+    // EXACT MODE
+    if (mode !== 'exact') {
+      return res.status(400).json({
+        success: false,
+        message: 'Mode must be "exact" or "range"'
+      });
+    }
+
+    // Validate exact mode fields
+    const exactErrors = [
+      validateField(body.yourRuns, 'yourRuns', { required: true, isNumber: true }),
+      validateField(body.yourOvers, 'yourOvers', { required: true }),
+      validateField(body.oppRuns, 'oppRuns', { required: true, isNumber: true }),
+      validateField(body.oppOvers, 'oppOvers', { required: true })
+    ].filter(e => e !== null);
+
+    if (exactErrors.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: exactErrors[0]
+      });
+    }
+
+    const matchStats = {
+      yourRuns: Number(body.yourRuns),
+      yourOvers: body.yourOvers,
+      oppRuns: Number(body.oppRuns),
+      oppOvers: body.oppOvers
+    };
+
+    // Check overs limit if provided
+    if (body.matchOvers) {
+      const maxBalls = pointsTableModel.parseOversToBalls(body.matchOvers);
+      const yourBalls = pointsTableModel.parseOversToBalls(matchStats.yourOvers);
+      const oppBalls = pointsTableModel.parseOversToBalls(matchStats.oppOvers);
+
+      if (yourBalls > maxBalls || oppBalls > maxBalls) {
+        return res.status(400).json({
+          success: false,
+          message: 'Overs in match exceed declared matchOvers'
+        });
+      }
+    }
+
+    // Simulate match
+    const snapshot = pointsTableModel.getPointsTableSnapshot();
+    const newTable = calculator.simulateMatchOutcome(snapshot, body.yourTeam, body.opposition, matchStats);
+
+    const yourIndex = calculator.findTeamInTable(newTable, body.yourTeam);
+    const oppIndex = calculator.findTeamInTable(newTable, body.opposition);
+
+    return res.json({
+      success: true,
+      mode: 'exact',
+      message: 'Match simulated successfully',
+      matchStats,
+      yourTeamResult: newTable[yourIndex],
+      oppositionResult: newTable[oppIndex],
+      fullTable: newTable
+    });
+
+  } catch (err) {
+    console.error('Error in calculateMatch:', err.message);
+    return res.status(500).json({
+      success: false,
+      message: err.message || 'Internal server error'
+    });
+  }
+}
+
+module.exports = {
+  getPointsTable,
+  calculateMatch
+};

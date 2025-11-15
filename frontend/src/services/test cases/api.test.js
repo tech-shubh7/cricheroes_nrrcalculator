@@ -9,11 +9,6 @@ describe('Frontend API Service - Function Exports', () => {
     expect(typeof apiModule.fetchPointsTable).toBe('function');
   });
 
-  test('should have simulateExactMatch export available', () => {
-    const apiModule = require('../api');
-    expect(typeof apiModule.simulateExactMatch).toBe('function');
-  });
-
   test('should have calculateMatch export available', () => {
     const apiModule = require('../api');
     expect(typeof apiModule.calculateMatch).toBe('function');

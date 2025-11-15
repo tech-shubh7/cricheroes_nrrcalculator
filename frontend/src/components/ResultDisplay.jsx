@@ -22,12 +22,12 @@ export default function ResultDisplay({ result }) {
     );
   }
 
-  const mode = result.mode || 'exact';
-
-  if (mode === 'range') {
+  // Check if it's range mode (has result.result field)
+  if (result.result) {
     return <RangeResultDisplay result={result} />;
   }
 
+  // Otherwise it's exact mode
   return <ExactResultDisplay result={result} />;
 }
 
@@ -64,25 +64,23 @@ function RangeResultDisplay({ result }) {
         </div>
       </div>
 
-      {rangeResult.canAchieve && (
+      {rangeResult.canAchieve && rangeResult.details && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="p-3 rounded-md bg-slate-50">
             <div className="text-xs text-slate-500 mb-2">
-              {tossResult === 'batting' ? 'Runs to Restrict (Range)' : 'Overs to Chase (Range)'}
+              {tossResult === 'batting' ? 'Restrict Opponent To' : 'Chase Target In'}
             </div>
             <div className="font-medium text-slate-800">
               {tossResult === 'batting'
-                ? `${rangeResult.minRuns} to ${rangeResult.maxRuns} runs`
-                : `${rangeResult.minOvers} to ${rangeResult.maxOvers} overs`}
+                ? rangeResult.details.restrictBetween
+                : rangeResult.details.chaseBetween}
             </div>
           </div>
 
           <div className="p-3 rounded-md bg-slate-50">
-            <div className="text-xs text-slate-500 mb-2">Revised NRR (Range)</div>
+            <div className="text-xs text-slate-500 mb-2">Revised NRR Range</div>
             <div className="font-medium text-slate-800">
-              {rangeResult.minNRR != null && rangeResult.maxNRR != null
-                ? `${rangeResult.minNRR.toFixed(3)} to ${rangeResult.maxNRR.toFixed(3)}`
-                : '-'}
+              {rangeResult.details.nrrRange || '-'}
             </div>
           </div>
         </div>
@@ -97,10 +95,9 @@ RangeResultDisplay.propTypes = {
 
 // Exact mode result display
 function ExactResultDisplay({ result }) {
-  const matchStats = result.matchStats || {};
-  const yourTeamResult = result.yourTeamResult || null;
-  const oppositionResult = result.oppositionResult || null;
-  const fullTable = Array.isArray(result.fullTable) ? result.fullTable : [];
+  const yourTeam = result.yourTeam || null;
+  const opposition = result.opposition || null;
+  const fullTable = result.updatedTable || [];
 
   return (
     <div className="rounded-lg bg-white shadow p-4 space-y-3">
@@ -110,40 +107,38 @@ function ExactResultDisplay({ result }) {
         <div className="p-3 rounded-md bg-slate-50">
           <div className="text-xs text-slate-500">Your Team</div>
           <div className="font-medium text-slate-800">
-            {yourTeamResult ? `${yourTeamResult.name} — Pts: ${yourTeamResult.pts}` : '-'}
+            {yourTeam ? `${yourTeam.name} — Pts: ${yourTeam.pts}` : '-'}
           </div>
-          <div className="text-sm text-slate-600">NRR: {formatNRR(yourTeamResult)}</div>
+          <div className="text-sm text-slate-600">
+            NRR: {yourTeam ? formatNRR(yourTeam.nrr) : '-'}
+          </div>
         </div>
 
         <div className="p-3 rounded-md bg-slate-50">
           <div className="text-xs text-slate-500">Opposition</div>
           <div className="font-medium text-slate-800">
-            {oppositionResult ? `${oppositionResult.name} — Pts: ${oppositionResult.pts}` : '-'}
+            {opposition ? `${opposition.name} — Pts: ${opposition.pts}` : '-'}
           </div>
-          <div className="text-sm text-slate-600">NRR: {formatNRR(oppositionResult)}</div>
+          <div className="text-sm text-slate-600">
+            NRR: {opposition ? formatNRR(opposition.nrr) : '-'}
+          </div>
         </div>
       </div>
 
       <div className="mt-2">
-        <div className="text-xs text-slate-500">Match Stats</div>
-        <div className="text-sm text-slate-700">
-          You: {matchStats.yourRuns || '-'} ({matchStats.yourOvers || '-'}) — Opp: {matchStats.oppRuns || '-'} ({matchStats.oppOvers || '-'})
-        </div>
-      </div>
-
-      <div className="mt-2">
-        <div className="text-xs text-slate-500">Updated Table Snapshot</div>
-        <div className="overflow-x-auto mt-2">
+        <div className="text-xs text-slate-500 mb-2">Updated Points Table</div>
+        <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="text-slate-500 text-left">
+            <thead className="text-slate-500 text-left border-b">
               <tr>
                 <th className="py-2">Pos</th>
                 <th className="py-2">Team</th>
+                <th className="py-2">M</th>
+                <th className="py-2">W</th>
                 <th className="py-2">Pts</th>
                 <th className="py-2">NRR</th>
               </tr>
             </thead>
-
             <tbody>
               {createTableRows(fullTable)}
             </tbody>
@@ -158,12 +153,11 @@ ExactResultDisplay.propTypes = {
   result: PropTypes.object.isRequired
 };
 
-// Format team NRR value for display
-function formatNRR(teamResult) {
-  if (!teamResult) return '-';
-  if (typeof teamResult.nrr === 'number') return teamResult.nrr.toFixed(3);
-  if (teamResult.nrr === null || teamResult.nrr === undefined) return '-';
-  return teamResult.nrr;
+// Format NRR value
+function formatNRR(nrr) {
+  if (nrr === null || nrr === undefined) return '-';
+  if (typeof nrr === 'number') return nrr.toFixed(3);
+  return nrr;
 }
 
 // Render table rows
@@ -171,8 +165,8 @@ function createTableRows(fullTable) {
   if (!Array.isArray(fullTable) || fullTable.length === 0) {
     return (
       <tr key="no-data">
-        <td colSpan={4} className="py-4 text-slate-400 text-center">
-          No snapshot available
+        <td colSpan={6} className="py-4 text-slate-400 text-center">
+          No data available
         </td>
       </tr>
     );
@@ -186,9 +180,11 @@ function createTableRows(fullTable) {
     return (
       <tr key={key} className={bgClass}>
         <td className="py-2 font-medium">{position}</td>
-        <td className="py-2">{team.name}</td>
-        <td className="py-2">{typeof team.pts === 'number' ? team.pts : '-'}</td>
-        <td className="py-2">{formatNRR(team)}</td>
+        <td className="py-2">{team.name || '-'}</td>
+        <td className="py-2">{team.matches || 0}</td>
+        <td className="py-2">{team.won || 0}</td>
+        <td className="py-2">{team.pts || 0}</td>
+        <td className="py-2">{formatNRR(team.nrr)}</td>
       </tr>
     );
   });

@@ -26,14 +26,14 @@ export default function MatchForm({ onSimulate, setLoading }) {
     if (yourTeam.trim().toLowerCase() === opposition.trim().toLowerCase())
       return 'Teams must be different';
 
-    const oversNum = Number(matchOvers);
-    if (Number.isNaN(oversNum) || oversNum <= 0) return 'Match overs must be a positive number';
+    const matchOversNumber = Number(matchOvers);
+    if (Number.isNaN(matchOversNumber) || matchOversNumber <= 0) return 'Match overs must be a positive number';
 
-    const posNum = Number(desiredPosition);
-    if (Number.isNaN(posNum) || posNum < 1 || posNum > 10) return 'Desired position must be between 1 and 10';
+    const desiredPositionNumber = Number(desiredPosition);
+    if (Number.isNaN(desiredPositionNumber) || desiredPositionNumber < 1 || desiredPositionNumber > 10) return 'Desired position must be between 1 and 10';
 
-    const runsNum = Number(runsScored);
-    if (Number.isNaN(runsNum) || runsNum < 0) return 'Runs must be a non-negative number';
+    const runsScoredNumber = Number(runsScored);
+    if (Number.isNaN(runsScoredNumber) || runsScoredNumber < 0) return 'Runs must be a non-negative number';
 
     return null;
   };
@@ -60,7 +60,7 @@ export default function MatchForm({ onSimulate, setLoading }) {
 
     try {
       const oversString = toOversString(matchOvers);
-      const runsNum = Number(runsScored);
+      const runsScoredNumber = Number(runsScored);
 
       let payload;
       if (tossResult === 'batting') {
@@ -69,13 +69,13 @@ export default function MatchForm({ onSimulate, setLoading }) {
           yourTeam: yourTeam.trim().toUpperCase(),
           opposition: opposition.trim().toUpperCase(),
           mode: 'range',
-          runsScored: runsNum, 
+          runsScored: runsScoredNumber, 
           matchOvers: matchOvers.trim(),
           desiredPosition: Number(desiredPosition),
           tossResult: 'batting',
-          yourRuns: runsNum,
+          yourRuns: runsScoredNumber,
           yourOvers: oversString,
-          oppRuns: Math.max(0, runsNum - 1),
+          oppRuns: Math.max(0, runsScoredNumber - 1),
           oppOvers: oversString
         };
       } else {
@@ -84,13 +84,13 @@ export default function MatchForm({ onSimulate, setLoading }) {
           yourTeam: yourTeam.trim().toUpperCase(),
           opposition: opposition.trim().toUpperCase(),
           mode: 'range',
-          runsScored: runsNum,   
+          runsScored: runsScoredNumber,   
           matchOvers: matchOvers.trim(),
           desiredPosition: Number(desiredPosition),
           tossResult: 'bowling',
-          yourRuns: runsNum + 1,
+          yourRuns: runsScoredNumber + 1,
           yourOvers: oversString,
-          oppRuns: runsNum,
+          oppRuns: runsScoredNumber,
           oppOvers: oversString
         };
       }

@@ -1,8 +1,8 @@
 // Main App component
 
 import React,{useState} from 'react';
-import PointsTable from './components/pointsTable';
-import MatchForm from './components/matchForm';
+import PointsTable from './components/PointsTable';
+import MatchForm from './components/MatchForm';
 import ResultDisplay from './components/ResultDisplay';
 
 

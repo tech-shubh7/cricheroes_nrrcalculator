@@ -1,0 +1,247 @@
+'use strict';
+
+const pointsTableModel = require('../models/pointsTable');
+
+const EPS = 0.000000001;
+
+// Sort table by points (desc), then NRR (desc), then wins (desc)
+function sortTableByRanking(table) {
+  return table.sort((teamA, teamB) => {
+    if (teamB.pts !== teamA.pts) return teamB.pts - teamA.pts;
+    
+    const nrrDiff = (teamB.nrr || 0) - (teamA.nrr || 0);
+    if (Math.abs(nrrDiff) > EPS) return nrrDiff;
+    
+    return (teamB.won || 0) - (teamA.won || 0);
+  });
+}
+
+// Find team in table by ID
+function findTeamInTable(table, teamId) {
+  return table.findIndex(t => t.id === teamId);
+}
+
+// Clone team stats using existing deepClone from model
+function cloneTeam(team) {
+  return pointsTableModel.deepClone(team);
+}
+
+// Update team stats with a match result
+function updateTeamWithResult(team, runsScored, ballsFaced, runsConceded, ballsConceded, opponentRuns) {
+  team.matches = (team.matches || 0) + 1;
+  team.for.runs = (team.for.runs || 0) + runsScored;
+  team.for.balls = (team.for.balls || 0) + ballsFaced;
+  team.against.runs = (team.against.runs || 0) + runsConceded;
+  team.against.balls = (team.against.balls || 0) + ballsConceded;
+  
+  if (runsScored > opponentRuns) {
+    team.won = (team.won || 0) + 1;
+    team.pts = (team.pts || 0) + 2;
+  } else if (runsScored < opponentRuns) {
+    team.lost = (team.lost || 0) + 1;
+  } else {
+    team.pts = (team.pts || 0) + 1;
+  }
+}
+
+// Helper: normalize overs format (ensures decimal format)
+function normalizeOversFormat(overs) {
+  return String(overs).includes('.') ? String(overs) : `${overs}.0`;
+}
+
+// Helper: convert balls to overs string format
+function ballsToOversString(totalBalls) {
+  const overs = Math.floor(totalBalls / 6);
+  const balls = totalBalls % 6;
+  return `${overs}.${balls}`;
+}
+
+// Simulate match outcome and return updated table
+function simulateMatchOutcome(snapshot, yourTeamId, oppTeamId, matchStats) {
+  const clonedTable = snapshot.map(cloneTeam);
+  
+  const yourIdx = findTeamInTable(clonedTable, yourTeamId);
+  const oppIdx = findTeamInTable(clonedTable, oppTeamId);
+  
+  if (yourIdx === -1 || oppIdx === -1) {
+    throw new Error('One or both teams not found in points table');
+  }
+  
+  const yourTeam = clonedTable[yourIdx];
+  const oppTeam = clonedTable[oppIdx];
+  
+  const yourBalls = pointsTableModel.parseOversToBalls(matchStats.yourOvers);
+  const oppBalls = pointsTableModel.parseOversToBalls(matchStats.oppOvers);
+  
+  const yourRuns = Number(matchStats.yourRuns);
+  const oppRuns = Number(matchStats.oppRuns);
+  
+  if (isNaN(yourRuns) || isNaN(oppRuns)) {
+    throw new Error('Run values must be valid numbers');
+  }
+  if (yourRuns < 0 || oppRuns < 0) {
+    throw new Error('Runs cannot be negative');
+  }
+  
+  updateTeamWithResult(yourTeam, yourRuns, yourBalls, oppRuns, oppBalls, oppRuns);
+  updateTeamWithResult(oppTeam, oppRuns, oppBalls, yourRuns, yourBalls, yourRuns);
+  
+  pointsTableModel.recalcTableNRR(clonedTable, true);
+  
+  return sortTableByRanking(clonedTable);
+}
+
+// Get team's position after simulating a match
+function getPositionAfterMatch(table, yourTeamId, oppTeamId, matchStats) {
+  const updatedTable = simulateMatchOutcome(table, yourTeamId, oppTeamId, matchStats);
+  const positionIdx = findTeamInTable(updatedTable, yourTeamId);
+  
+  return {
+    table: updatedTable,
+    position: positionIdx + 1,
+    teamData: updatedTable[positionIdx]
+  };
+}
+
+// Generic binary search to find valid range
+// searchType: 'min' (ascending) or 'max' (descending)
+function binarySearchRange(table, yourTeamId, oppTeamId, desiredPosition, searchType, buildMatchStats) {
+  let left = 0;
+  let right = 1000; // reasonable max
+  let validValue = null;
+  
+  if (searchType === 'min') {
+    // Find minimum value where position <= desired
+    while (left <= right) {
+      const mid = Math.floor((left + right) / 2);
+      const stats = buildMatchStats(mid);
+      const result = getPositionAfterMatch(table, yourTeamId, oppTeamId, stats);
+      
+      if (result.position <= desiredPosition) {
+        validValue = mid;
+        right = mid - 1;
+      } else {
+        left = mid + 1;
+      }
+    }
+  } else if (searchType === 'max') {
+    // Find maximum value where position <= desired
+    while (left <= right) {
+      const mid = Math.floor((left + right) / 2);
+      const stats = buildMatchStats(mid);
+      const result = getPositionAfterMatch(table, yourTeamId, oppTeamId, stats);
+      
+      if (result.position <= desiredPosition) {
+        validValue = mid;
+        left = mid + 1;
+      } else {
+        right = mid - 1;
+      }
+    }
+  }
+  
+  return validValue;
+}
+
+// Helper: extract NRR value from match result
+function extractNRRValue(table, yourTeamId, oppTeamId, matchStats) {
+  try {
+    const result = getPositionAfterMatch(table, yourTeamId, oppTeamId, matchStats);
+    return result.teamData.nrr ? Number(result.teamData.nrr.toFixed(3)) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+// Find range of runs opponent can score for desired position (batting first)
+function findOpponentRunsRange(yourTeamId, oppTeamId, desiredPosition, yourRuns, matchOvers) {
+  const table = pointsTableModel.getPointsTableSnapshot();
+  const oversStr = normalizeOversFormat(matchOvers);
+  
+  const maxRuns = Math.max(0, yourRuns - 1);
+  
+  // Use generic binary search for min and max
+  const buildStats = (oppRuns) => ({
+    yourRuns,
+    yourOvers: oversStr,
+    oppRuns,
+    oppOvers: oversStr
+  });
+  
+  const minValidRuns = binarySearchRange(table, yourTeamId, oppTeamId, desiredPosition, 'min', buildStats);
+  const maxValidRuns = binarySearchRange(table, yourTeamId, oppTeamId, desiredPosition, 'max', buildStats);
+  
+  let minNRR = null;
+  let maxNRR = null;
+  
+  if (minValidRuns !== null) {
+    minNRR = extractNRRValue(table, yourTeamId, oppTeamId, buildStats(minValidRuns));
+  }
+  
+  if (maxValidRuns !== null) {
+    maxNRR = extractNRRValue(table, yourTeamId, oppTeamId, buildStats(maxValidRuns));
+  }
+  
+  return {
+    success: minValidRuns !== null && maxValidRuns !== null,
+    minRuns: minValidRuns,
+    maxRuns: maxValidRuns,
+    minNRR,
+    maxNRR,
+    yourRuns,
+    overs: oversStr
+  };
+}
+
+// Find range of overs for chasing (bowling first)
+function findChasingOversRange(yourTeamId, oppTeamId, desiredPosition, targetRuns, matchOvers) {
+  const table = pointsTableModel.getPointsTableSnapshot();
+  const oversStr = normalizeOversFormat(matchOvers);
+  const maxBalls = pointsTableModel.parseOversToBalls(oversStr);
+  const chasingRuns = targetRuns + 1;
+  
+  // Use generic binary search for min and max balls
+  const buildStats = (balls) => ({
+    yourRuns: chasingRuns,
+    yourOvers: ballsToOversString(balls),
+    oppRuns: targetRuns,
+    oppOvers: oversStr
+  });
+  
+  const minValidBalls = binarySearchRange(table, yourTeamId, oppTeamId, desiredPosition, 'min', buildStats);
+  const maxValidBalls = binarySearchRange(table, yourTeamId, oppTeamId, desiredPosition, 'max', buildStats);
+  
+  let minOvers = null;
+  let maxOvers = null;
+  let minNRR = null;
+  let maxNRR = null;
+  
+  if (minValidBalls !== null) {
+    minOvers = ballsToOversString(minValidBalls);
+    minNRR = extractNRRValue(table, yourTeamId, oppTeamId, buildStats(minValidBalls));
+  }
+  
+  if (maxValidBalls !== null) {
+    maxOvers = ballsToOversString(maxValidBalls);
+    maxNRR = extractNRRValue(table, yourTeamId, oppTeamId, buildStats(maxValidBalls));
+  }
+  
+  return {
+    success: minValidBalls !== null && maxValidBalls !== null,
+    minOvers,
+    maxOvers,
+    minNRR,
+    maxNRR,
+    targetRuns,
+    chasingRuns
+  };
+}
+
+module.exports = {
+  simulateMatchOutcome,
+  sortTableByRanking,
+  findOpponentRunsRange,
+  findChasingOversRange,
+  getPositionAfterMatch,
+  findTeamInTable
+};

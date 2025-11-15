@@ -1,6 +1,6 @@
 // Points table display component
 
-import React,{useState} from 'react';
+import React,{useState,useEffect} from 'react';
 import PropTypes from 'prop-types';
 import { fetchPointsTable } from '../services/api';
 
@@ -53,7 +53,7 @@ export default function PointsTable({ table = [], setTable, loading = false }) {
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-medium text-slate-700">Points Table</h2>
         <div className="text-xs text-slate-500">
-          {isLoading ? "Refreshing..." : "Live snapshot"}
+          {isLoading ? "Refreshing..." : ""}
         </div>
       </div>
 

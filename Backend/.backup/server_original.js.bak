@@ -28,6 +28,11 @@ app.use((req, res) => {
   res.status(404).json({ success: false, message: 'Endpoint not found' });
 });
 
+app.use((err, req, res, next) => {
+  console.error('Server error:', err.message);
+  res.status(500).json({ success: false, message: 'Internal server error' });
+});
+
 module.exports = app;
 if (require.main === module) {
   const PORT = process.env.PORT || 4000;
@@ -35,3 +40,5 @@ if (require.main === module) {
     console.log(`Server running on port ${PORT}`);
   });
 }
+
+

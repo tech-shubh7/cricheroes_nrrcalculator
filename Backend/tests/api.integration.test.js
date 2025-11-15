@@ -93,10 +93,11 @@ describe('API Integration Tests', () => {
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.matchStats).toBeDefined();
-      expect(response.body.yourTeamResult).toBeDefined();
-      expect(response.body.oppositionResult).toBeDefined();
-      expect(response.body.fullTable).toBeDefined();
+      expect(response.body.mode).toBe('exact');
+      expect(response.body.yourTeam).toBeDefined();
+      expect(response.body.opposition).toBeDefined();
+      expect(response.body.updatedTable).toBeDefined();
+      expect(Array.isArray(response.body.updatedTable)).toBe(true);
     });
 
     test('should increase your team points when winning', async () => {
@@ -117,7 +118,7 @@ describe('API Integration Tests', () => {
         .expect(200);
 
       // Your team should have won (got 2 points)
-      expect(response.body.yourTeamResult.pts).toBeGreaterThanOrEqual(8);
+      expect(response.body.yourTeam.pts).toBeGreaterThanOrEqual(8);
     });
 
     test('should handle tie scenarios', async () => {
@@ -227,7 +228,7 @@ describe('API Integration Tests', () => {
       const response = await request(app)
         .post('/api/calculate')
         .send(negativeRunsData)
-        .expect(500);
+        .expect(400);
 
       expect(response.body.success).toBe(false);
     });

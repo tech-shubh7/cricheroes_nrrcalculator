@@ -61,6 +61,7 @@ const pointsTable = [
   }
 ];
 
+
 // Convert overs string (e.g., "18.3") or object to total balls
 function parseOversToBalls(oversInput) {
   if (oversInput === null || oversInput === undefined) {
@@ -136,6 +137,7 @@ function getPointsTableSnapshot() {
 }
 
 module.exports = {
+  pointsTable, 
   getPointsTableSnapshot,
   parseOversToBalls,
   ballsToDecimalOvers,
