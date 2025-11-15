@@ -39,7 +39,7 @@ export default function PointsTable({ table = [], setTable, loading = false }) {
 
     loadData();
     return () => (mounted = false);
-  }, [table, setTable]);
+  }, []);
 
   const isLoading = loading || localLoading;
 

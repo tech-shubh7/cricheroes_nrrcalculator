@@ -164,6 +164,7 @@ function bowlingFirstRange(yourTeam, oppTeam, desiredPos, oppRuns, matchOvers) {
 module.exports = {
   simulateMatch,
   sortTable,
-  findTeambattingFirstRange,
+  findTeam,
+  battingFirstRange,
   bowlingFirstRange
 };
