@@ -142,10 +142,10 @@ npm test
 **Expected Output:**
 ```
 Test Suites: 4 passed, 4 total
-Tests:       31 passed, 31 total
+Tests:       30 passed, 30 total
 ```
 
-**Combined Total: 71 tests - 100% passing ✅**
+**Combined Total: 70 tests - 100% passing ✅**
 
 ---
 
