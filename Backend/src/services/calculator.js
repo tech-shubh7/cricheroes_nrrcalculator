@@ -108,9 +108,12 @@ function battingFirstRange(yourTeam, oppTeam, desiredPos, yourRuns, matchOvers) 
       if (minRuns === null) {
         minRuns = oppRuns;
         minNRR = result.nrr;
+        maxNRR = result.nrr;
+      } else {
+        minNRR = Math.min(minNRR, result.nrr);
+        maxNRR = Math.max(maxNRR, result.nrr);
       }
       maxRuns = oppRuns;
-      maxNRR = result.nrr;
     }
   }
   
@@ -145,9 +148,12 @@ function bowlingFirstRange(yourTeam, oppTeam, desiredPos, oppRuns, matchOvers) {
       if (minBalls === null) {
         minBalls = balls;
         minNRR = result.nrr;
+        maxNRR = result.nrr;
+      } else {
+        minNRR = Math.min(minNRR, result.nrr);
+        maxNRR = Math.max(maxNRR, result.nrr);
       }
       maxBalls_valid = balls;
-      maxNRR = result.nrr;
     }
   }
   
