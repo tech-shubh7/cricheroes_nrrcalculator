@@ -87,14 +87,10 @@ function ballsToOvers(balls) {
   return `${Math.floor(balls / 6)}.${balls % 6}`;
 }
 
-function formatOvers(overs) {
-  return String(overs).includes('.') ? String(overs) : `${overs}.0`;
-}
-
 // Calculate range when batting first
 function battingFirstRange(yourTeam, oppTeam, desiredPos, yourRuns, matchOvers) {
   const baselineTable = pointsTableModel.getPointsTableSnapshot();
-  const overs = formatOvers(matchOvers);
+  const overs = String(matchOvers).includes('.') ? String(matchOvers) : `${matchOvers}.0`;
   
   let minRuns = null, maxRuns = null;
   let minNRR = null, maxNRR = null;
@@ -131,7 +127,7 @@ function battingFirstRange(yourTeam, oppTeam, desiredPos, yourRuns, matchOvers) 
 // Calculate range when bowling first (chasing)
 function bowlingFirstRange(yourTeam, oppTeam, desiredPos, oppRuns, matchOvers) {
   const baselineTable = pointsTableModel.getPointsTableSnapshot();
-  const overs = formatOvers(matchOvers);
+  const overs = String(matchOvers).includes('.') ? String(matchOvers) : `${matchOvers}.0`;
   const target = oppRuns + 1; // chase target
   const maxBalls = pointsTableModel.parseOversToBalls(overs);
   
