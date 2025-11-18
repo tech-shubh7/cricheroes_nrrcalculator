@@ -9,9 +9,9 @@ export default function MatchForm({ onSimulate, setLoading }) {
   const [yourTeam, setYourTeam] = useState('RR');
   const [opposition, setOpposition] = useState('DC');
   const [matchOvers, setMatchOvers] = useState('20');
-  const [desiredPosition, setDesiredPosition] = useState('1');
+  const [desiredPosition, setDesiredPosition] = useState('3');
   const [tossResult, setTossResult] = useState('batting');
-  const [runsScored, setRunsScored] = useState('160');
+  const [runsScored, setRunsScored] = useState('120');
 
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
